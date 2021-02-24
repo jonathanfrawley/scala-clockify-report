@@ -18,11 +18,11 @@ case class SummaryFilter(groups: List[String])
 object SummaryFilter{
   implicit val rw: RW[SummaryFilter] = macroRW
 }
+
 case class ReportRequest(dateRangeStart: String, dateRangeEnd: String, summaryFilter: SummaryFilter)
 object ReportRequest{
   implicit val rw: RW[ReportRequest] = macroRW
 }
-
 
 case class ChildChild(name: String, duration: Int)
 object ChildChild{
@@ -33,10 +33,12 @@ case class Child(duration: Int, name: String, clientName: String, children: List
 object Child{
   implicit val rw: RW[Child] = macroRW
 }
+
 case class GroupOne(children: List[Child])
 object GroupOne{
   implicit val rw: RW[GroupOne] = macroRW
 }
+
 case class ReportResponse(groupOne: List[GroupOne])
 object ReportResponse{
   implicit val rw: RW[ReportResponse] = macroRW
@@ -66,30 +68,23 @@ object Main extends App {
 
   // listWorkspaces // if need, uncomment this
 
-  //val today = Calendar.getInstance.getTime
-  //val now = LocalDateTime.now()
   val format = DateTimeFormatter.ofPattern("yyyy-MM-dd")
   val startDate = LocalDate.parse(sys.env("START_DATE"), format)
   val endDate = LocalDate.parse(sys.env("END_DATE"), format)
   var date = startDate
-  print(s"start $startDate end $endDate")
   assert(startDate.isBefore(endDate))
 
   while(date.isBefore(endDate)) {
     date = date.plusDays(1)
-    //val format = new SimpleDateFormat("y-M-d")
     val dayOfWeekFormatter = DateTimeFormatter.ofPattern("E")
     println("-------------------------------------------------------")
     println(s"${date.format(dayOfWeekFormatter)}, ${date.format(format)}")
     val formattedDate = date.format(format)
 
     val startDate = s"${formattedDate}T00:00:00.000"
-
     val endDate = s"${formattedDate}T23:59:59.000"
 
-    //println(s"start $startDate end $endDate")
     val workspaceId = sys.env("WORKSPACE_ID")
-
     val r = requests.post(s"https://reports.api.clockify.me/v1/workspaces/$workspaceId/reports/summary",
       headers = Map("X-Api-Key" -> ApiKey, "content-type" -> "application/json"),
       data = upickle.default.stream(ReportRequest(startDate, endDate, SummaryFilter(List(
@@ -97,10 +92,6 @@ object Main extends App {
             "PROJECT",
             "TIMEENTRY"
             )))))
-
-    //println(r.statusCode)
-
-    //println(r.text)
 
     val resp = read[ReportResponse](r.text)
     resp.groupOne.headOption.map { case head =>
@@ -117,8 +108,4 @@ object Main extends App {
       }
     }
   }
-
-
- 
-  // {"login":"lihaoyi","id":934140,"node_id":"MDQ6VXNlcjkzNDE0MA==",...
 }
