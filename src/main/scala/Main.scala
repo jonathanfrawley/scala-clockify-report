@@ -1,5 +1,6 @@
 //import requests
 import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -46,7 +47,7 @@ object Main extends App {
     val hours = (seconds / 60 / 60) % 24
     val minutes = (seconds / 60) % 60
     val secondsMod = seconds % 60
-    s"$hours h $minutes m $secondsMod s"
+    s"${hours}h ${minutes}m ${secondsMod}s"
   }
 
   def listWorkspaces() = {
@@ -66,11 +67,17 @@ object Main extends App {
   // listWorkspaces // if need, uncomment this
 
   //val today = Calendar.getInstance.getTime
-  val now = LocalDateTime.now()
-  for (i <- 1 to 7) {
-    val date = now.minusDays(i)
+  //val now = LocalDateTime.now()
+  val format = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  val startDate = LocalDate.parse(sys.env("START_DATE"), format)
+  val endDate = LocalDate.parse(sys.env("END_DATE"), format)
+  var date = startDate
+  print(s"start $startDate end $endDate")
+  assert(startDate.isBefore(endDate))
+
+  while(date.isBefore(endDate)) {
+    date = date.plusDays(1)
     //val format = new SimpleDateFormat("y-M-d")
-    val format = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val dayOfWeekFormatter = DateTimeFormatter.ofPattern("E")
     println("-------------------------------------------------------")
     println(s"${date.format(dayOfWeekFormatter)}, ${date.format(format)}")
