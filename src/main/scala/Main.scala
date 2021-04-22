@@ -47,9 +47,23 @@ object ReportResponse{
 object Main extends App {
   def clockifyDurationToString(seconds: Int) = {
     val hours = (seconds / 60 / 60) % 24
-    val minutes = (seconds / 60) % 60
+    val minutesMod = (seconds / 60) % 60
+    //val secondsMod = seconds % 60
     val secondsMod = seconds % 60
-    s"${hours}h ${minutes}m ${secondsMod}s"
+
+    val minutesModFifteen = minutesMod % 15
+    val roundUp = 
+      if (minutesModFifteen == 7) (secondsMod >= 30)
+      else (minutesModFifteen > 7)
+
+    val roundedMinutes = if(roundUp) minutesMod + (15-minutesModFifteen)
+                         else minutesMod - minutesModFifteen
+
+    val (roundedHours, roundedMinutesFinal) = if (roundedMinutes == 60) ((hours + 1), 0)
+      else (hours, roundedMinutes)
+    
+    //s"${hours}h ${minutes}m ${0}s"
+    s"${hours}h ${minutesMod}m ${secondsMod}s (${roundedHours}h ${roundedMinutesFinal}m)"
   }
 
   def listWorkspaces() = {
@@ -100,9 +114,24 @@ object Main extends App {
         println(s"Client: ${child.clientName}")
         println(s"Project: ${child.name}")
         println(s"Total Duration: ${clockifyDurationToString(child.duration)}")
+
+        def unCapitalCase(str: String): String = str(0).toLower + str.tail
+
+        def createSentenceRecurse(list: List[ChildChild]): String =
+          list match {
+            case Nil => "."
+            case x :: Nil => " and " + x.name + "."
+            case x :: xs => ", " + x.name + createSentenceRecurse(xs)
+          }
+
+        print(child.children.head.name)
+        println(createSentenceRecurse(child.children.tail))
+
+        println("-- Details")
         child.children.zipWithIndex.foreach { case (item, index) =>
           println(s"[$index] ${item.name} [${clockifyDurationToString(item.duration)}]")
         }
+
 
         println("-----------------------")
       }
